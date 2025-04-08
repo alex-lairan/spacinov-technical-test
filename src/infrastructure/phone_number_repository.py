@@ -2,6 +2,7 @@ import sqlite3
 from src.domain.phone_number import PhoneNumber
 from src.domain.allocated_phone_number import AllocatedPhoneNumber
 from src.domain.number_range import NumberRange
+from src.domain.yearly_report import YearlyReport, YearlyRangeReport
 
 class PhoneNumberAllocationError(Exception):
     """Exception levée lorsqu'aucun numéro ne peut être alloué."""
@@ -95,3 +96,38 @@ class PhoneNumberRepository:
         rows = cur.fetchall()
         conn.close()
         return [(row["id"], NumberRange(start=row["start"], end=row["end"])) for row in rows]
+
+    def generate_yearly_usage_report(self, year: int) -> YearlyReport:
+        """
+        Génère un rapport pour l'année donnée.
+
+        Retourne une liste de dictionnaires, chacun contenant pour une plage :
+          - range_id
+          - currently_allocated : nombre de numéros toujours actifs
+          - new_allocated        : nombre de numéros alloués durant l'année
+          - cancelled            : nombre de numéros annulés durant l'année
+        """
+        conn = self._get_connection()
+        cur = conn.cursor()
+        start_date = f"{year}-01-01"
+        end_date   = f"{year}-12-31"
+        query = """
+        SELECT range_id,
+               SUM(CASE WHEN cancelled_at IS NULL THEN 1 ELSE 0 END) AS currently_allocated,
+               SUM(CASE WHEN allocated_at BETWEEN ? AND ? THEN 1 ELSE 0 END) AS new_allocated,
+               SUM(CASE WHEN cancelled_at BETWEEN ? AND ? THEN 1 ELSE 0 END) AS cancelled
+        FROM allocated_number
+        GROUP BY range_id
+        """
+        cur.execute(query, (start_date, end_date, start_date, end_date))
+        rows = cur.fetchall()
+        conn.close()
+        reports = [
+            YearlyRangeReport(
+                range_id=row["range_id"],
+                currently_allocated=row["currently_allocated"],
+                new_allocated=row["new_allocated"],
+                cancelled=row["cancelled"]
+            ) for row in rows
+        ]
+        return YearlyReport(range_reports=reports)

@@ -20,6 +20,7 @@ def create_tables(conn: sqlite3.Connection) -> None:
         range_id INTEGER,
         customer_id INTEGER,
         allocated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        cancelled_at DATETIME,
         FOREIGN KEY (range_id) REFERENCES number_range(id)
     );
     """)

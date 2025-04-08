@@ -58,5 +58,31 @@ def list_ranges(ctx):
     else:
         click.echo("Aucune plage de numéros n'existe.")
 
+@cli.command()
+@click.option("--year", required=True, type=int, help="Année pour le rapport")
+@click.pass_context
+def usage_report(ctx, year):
+    """
+    Génère un rapport annuel indiquant pour chaque plage :
+      - Le nombre de numéros actuellement alloués.
+      - Le nombre de numéros nouvellement alloués durant l'année.
+      - Le nombre de numéros annulés durant l'année.
+    """
+    repository = ctx.obj["repository"]
+    try:
+        report = repository.generate_yearly_usage_report(year)
+        if report.range_reports:
+            click.echo(f"Rapport d'utilisation pour l'année {year} :")
+            for r in report.range_reports:
+                click.echo(
+                    f"Plage ID {r.range_id} : {r.currently_allocated} alloués, " +
+                    f"{r.new_allocated} nouvellement alloués, {r.cancelled} annulés."
+                )
+        else:
+            click.echo("Aucun enregistrement trouvé pour l'année donnée.")
+    except Exception as e:
+        click.echo(f"Erreur lors de la génération du rapport : {e}")
+
+
 if __name__ == "__main__":
     cli()
