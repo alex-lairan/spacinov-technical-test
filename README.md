@@ -8,6 +8,8 @@ A minimal CLI application to manage a telecommunications operator's pool of phon
 - Allocate a phone number to a customer
 - List currently allocated numbers
 - Do a yearly usage report
+- Cancel a customer's subscription
+- Release expired numbers
 
 ## 🚀 Getting Started
 
