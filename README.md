@@ -33,3 +33,9 @@ pip install -r requirements.txt
 ```bash
 ./scripts/setup-db.py
 ```
+
+#### Use the CLI
+
+```bash
+python -m src.main --help
+```
