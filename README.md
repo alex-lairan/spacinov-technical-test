@@ -7,3 +7,29 @@ A minimal CLI application to manage a telecommunications operator's pool of phon
 - Initialize a database with the allocated ARCEP number ranges
 - Allocate a phone number to a customer
 - List currently allocated numbers
+- Do a yearly usage report
+
+## 🚀 Getting Started
+
+### Installation
+
+(Optional) Create a virtual environment:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Usage
+
+#### Initialize the database and populate the number pool:
+
+```bash
+./scripts/setup-db.py
+```
