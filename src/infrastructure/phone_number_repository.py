@@ -131,3 +131,47 @@ class PhoneNumberRepository:
             ) for row in rows
         ]
         return YearlyReport(range_reports=reports)
+
+    def cancel_subscription(self, customer_id: int) -> None:
+        """
+        Marque la fin de l'abonnement d'un client en renseignant la date d'annulation.
+        """
+        conn = self._get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            UPDATE allocated_number
+            SET cancelled_at = datetime('now')
+            WHERE customer_id = ? AND cancelled_at IS NULL
+            """,
+            (customer_id,)
+        )
+        conn.commit()
+        conn.close()
+
+    def release_expired_numbers(self) -> int:
+        """
+        Libère les numéros dont l'annulation remonte à plus de 6 mois.
+        Ces numéros sont retirés de la table allocated_number, ce qui les
+        rend à nouveau disponibles pour allocation.
+
+        Retourne le nombre de numéros libérés.
+
+        Pistes d'amélioration :
+          - Garder les numeros annulés dans un cold storage
+          - Garder les numeros annulés dans la db avec la possibilité de récupérer l'historique des customers
+            Problématique: Changer la pk de la table allocated_number pour qu'elle soit composée de (customer_id, number)
+        """
+        conn = self._get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            DELETE FROM allocated_number
+            WHERE cancelled_at IS NOT NULL
+              AND cancelled_at <= date('now', '-6 months')
+            """
+        )
+        released = cur.rowcount
+        conn.commit()
+        conn.close()
+        return released

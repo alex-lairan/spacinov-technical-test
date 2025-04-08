@@ -83,6 +83,33 @@ def usage_report(ctx, year):
     except Exception as e:
         click.echo(f"Erreur lors de la génération du rapport : {e}")
 
+@cli.command()
+@click.option("--customer-id", required=True, type=int, help="Identifiant du client")
+@click.pass_context
+def cancel_subscription(ctx, customer_id):
+    """
+    Marque la fin d'abonnement d'un client pour un numéro donné.
+    """
+    repository = ctx.obj["repository"]
+    try:
+        repository.cancel_subscription(customer_id)
+        click.echo(f"Abonnement terminé pour le client {customer_id}.")
+    except Exception as e:
+        click.echo(f"Erreur inconnue : {e}")
+
+@cli.command()
+@click.pass_context
+def release_expired(ctx):
+    """
+    Libère les numéros dont l'annulation date de plus de 6 mois.
+    """
+    repository = ctx.obj["repository"]
+    try:
+        released_count = repository.release_expired_numbers()
+        click.echo(f"{released_count} numéro(s) libéré(s).")
+    except Exception as e:
+        click.echo(f"Erreur lors de la libération des numéros expirés : {e}")
+
 
 if __name__ == "__main__":
     cli()
